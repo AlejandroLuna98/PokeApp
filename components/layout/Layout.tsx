@@ -10,7 +10,6 @@ type LayoutProps = {
 
 export const Layout: FC<LayoutProps> = ({ children, title }) => {
   const origin = typeof window === 'undefined' ? '' : window.location.origin;
-
   return (
     <>
       <Head>
