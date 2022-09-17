@@ -3,7 +3,14 @@ import React, { useEffect, useState } from 'react';
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
 import Image from 'next/image';
 
-import { Button, Card, Container, Grid, Text } from '@nextui-org/react';
+import {
+  Button,
+  Card,
+  Container,
+  Grid,
+  Text,
+  useTheme,
+} from '@nextui-org/react';
 import confetti from 'canvas-confetti';
 
 import { Pokemon, PokemonListResponse } from '../../interfaces';
@@ -60,7 +67,18 @@ const PokemonByName: NextPage<PokemonByNameProps> = ({ pokemon }) => {
         <Grid xs={12} sm={8}>
           <Card>
             <Card.Header
-              css={{ display: 'flex', justifyContent: 'space-between' }}
+              css={{
+                xs: {
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexDirection: 'column',
+                },
+                md: {
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexDirection: 'row',
+                },
+              }}
             >
               <Text h1 transform="capitalize">
                 {pokemon.name}
@@ -115,21 +133,31 @@ export const getStaticPaths: GetStaticPaths = async () => {
   } = await pokeApi.get<PokemonListResponse>('/pokemon?limit=151');
 
   const names = results.map((value, index) => results[index].name);
+
   return {
     paths: names.map((name) => ({
       params: { name },
     })),
-    fallback: false,
+    fallback: 'blocking',
   };
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { name } = params as { name: string };
-
+  const pokemon = await getPokemonInfo(name);
+  if (!pokemon) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    };
+  }
   return {
     props: {
-      pokemon: await getPokemonInfo(name),
+      pokemon,
     },
+    // revalidate: 86400,
   };
 };
 export default PokemonByName;
